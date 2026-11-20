@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Мой кликер</title>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 30px 20px;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #2b2b45);
+      color: #ffffff;
+      user-select: none;
+      box-sizing: border-box;
+    }
+
+    h1 { font-size: 42px; margin: 0 0 10px; text-shadow: 0 0 20px #6c5ce7; }
+
+    #score { font-size: 56px; font-weight: bold; color: #00e676; text-shadow: 0 0 20px #00e676; }
+    .score-label { font-size: 20px; color: #aaaaaa; margin-bottom: 20px; }
+
+    #clickBtn {
+      width: 200px; height: 200px; border-radius: 50%;
+      border: 6px solid #6c5ce7;
+      background: radial-gradient(circle at 30% 30%, #8e7dff, #4b3fbf);
+      color: white; font-size: 24px; font-weight: bold; cursor: pointer;
+      box-shadow: 0 0 30px #6c5ce7, inset 0 0 30px rgba(0,0,0,0.3);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    #clickBtn:hover { box-shadow: 0 0 50px #8e7dff, inset 0 0 30px rgba(0,0,0,0.3); }
+    #clickBtn:active { transform: scale(0.95); box-shadow: 0 0 20px #6c5ce7, inset 0 0 40px rgba(0,0,0,0.5); }
+
+    .shop { margin-top: 30px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+    .shop-item {
+      background: rgba(255,255,255,0.07); border: 2px solid #6c5ce7;
+      border-radius: 16px; padding: 20px; width: 220px; text-align: center;
+    }
+    .shop-item h3 { margin: 0 0 8px; color: #8e7dff; }
+    .shop-item p { margin: 4px 0; font-size: 14px; color: #cccccc; }
+    .shop-item button {
+      margin-top: 12px; padding: 10px 18px; border: none; border-radius: 10px;
+      background: #6c5ce7; color: white; font-weight: bold; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .shop-item button:hover { background: #8e7dff; }
+    .shop-item button:disabled { background: #444; cursor: not-allowed; color: #888; }
+
+    /* ===== БОСС ===== */
+    .boss-block {
+      margin-top: 30px; width: 100%; max-width: 480px;
+      background: rgba(255, 80, 80, 0.08);
+      border: 3px solid #ff5252;
+      border-radius: 16px; padding: 20px; box-sizing: border-box;
+      box-shadow: 0 0 30px rgba(255, 82, 82, 0.3);
+    }
+    .boss-title {
+      text-align: center; font-size: 26px; font-weight: bold;
+      color: #ff5252; text-shadow: 0 0 15px #ff5252; margin: 0 0 6px;
+    }
+    .boss-subtitle {
+      text-align: center; font-size: 13px; color: #ffb0b0; margin-bottom: 14px;
+    }
+    .boss-hp-bar {
+      height: 26px; background: rgba(0,0,0,0.5); border-radius: 13px;
+      overflow: hidden; border: 2px solid #ff5252; margin-bottom: 8px;
+    }
+    .boss-hp-fill {
+      height: 100%; width: 100%;
+      background: linear-gradient(90deg, #ff5252, #ff1744);
+      transition: width 0.3s;
+    }
+    .boss-hp-text {
+      text-align: center; font-size: 14px; color: #ffb0b0; margin-bottom: 12px;
+    }
+    #bossHitBtn {
+      display: block; width: 100%; padding: 14px; border: none; border-radius: 12px;
+      background: linear-gradient(135deg, #ff5252, #d32f2f);
+      color: white; font-size: 18px; font-weight: bold; cursor: pointer;
+      box-shadow: 0 0 20px rgba(255, 82, 82, 0.5);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    #bossHitBtn:hover { box-shadow: 0 0 30px rgba(255, 82, 82, 0.8); }
+    #bossHitBtn:active { transform: scale(0.97); }
+    #bossHitBtn:disabled {
+      background: #555; cursor: not-allowed; box-shadow: none;
+    }
+    .boss-timer {
+      text-align: center; font-size: 15px; color: #ffb0b0; margin-top: 12px;
+    }
+    .boss-my-damage {
+      text-align: center; font-size: 14px; color: #ffd54f; margin-top: 8px;
+    }
+
+    /* ===== КОЛЛЕКЦИЯ ===== */
+    .collection-block {
+      margin-top: 30px; width: 100%; max-width: 480px;
+      background: rgba(255,255,255,0.06); border: 2px solid #6c5ce7;
+      border-radius: 16px; padding: 20px; box-sizing: border-box;
+    }
+    .collection-block h2 {
+      margin: 0 0 8px; text-align: center; color: #8e7dff; font-size: 22px;
+    }
+    .collection-progress {
+      text-align: center; font-size: 14px; color: #aaaaaa; margin-bottom: 14px;
+    }
+    .fruit-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+    }
+    .fruit {
+      aspect-ratio: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.3); border-radius: 12px;
+      border: 2px solid #444; font-size: 11px; color: #666;
+      transition: all 0.3s; padding: 4px;
+    }
+    .fruit .emoji { font-size: 28px; filter: grayscale(1) opacity(0.3); transition: filter 0.3s; }
+    .fruit.owned {
+      border-color: #00e676; background: rgba(0, 230, 118, 0.1);
+      color: #aaffcc; box-shadow: 0 0 12px rgba(0, 230, 118, 0.4);
+    }
+    .fruit.owned .emoji { filter: none; }
+    .collection-badge {
+      text-align: center; margin-top: 14px; font-size: 15px;
+      color: #ffd54f; font-weight: bold;
+    }
+
+    /* ===== ДОСТИЖЕНИЯ ===== */
+    .achievements-block {
+      margin-top: 30px; width: 100%; max-width: 480px;
+      background: rgba(255,255,255,0.06); border: 2px solid #ffd54f;
+      border-radius: 16px; padding: 20px; box-sizing: border-box;
+    }
+    .achievements-block h2 {
+      margin: 0 0 14px; text-align: center; color: #ffd54f; font-size: 22px;
+    }
+    .achievement {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px; border-radius: 10px;
+      background: rgba(0,0,0,0.3); border: 2px solid #444;
+      color: #666;
+    }
+    .achievement.unlocked {
+      border-color: #ffd54f; background: rgba(255, 213, 79, 0.1); color: #fff;
+      box-shadow: 0 0 15px rgba(255, 213, 79, 0.3);
+    }
+    .achievement .ach-icon { font-size: 32px; }
+    .achievement.unlocked .ach-icon { filter: drop-shadow(0 0 8px #ffd54f); }
+    .achievement .ach-name { font-weight: bold; font-size: 16px; }
+    .achievement .ach-desc { font-size: 12px; color: #999; }
+
+    /* ===== ЛИДЕРБОРД ===== */
+    .leaderboard {
+      margin-top: 40px; width: 100%; max-width: 480px;
+      background: rgba(255,255,255,0.06); border: 2px solid #6c5ce7;
+      border-radius: 16px; padding: 20px; box-sizing: border-box;
+    }
+    .leaderboard h2 {
+      margin: 0 0 16px; text-align: center; color: #8e7dff; font-size: 24px;
+    }
+    .lb-row {
+      display: flex; align-items: center; padding: 8px 10px;
+      border-radius: 8px; margin-bottom: 4px; font-size: 16px;
+    }
+    .lb-row .place { width: 40px; color: #888; font-weight: bold; }
+    .lb-row .name  { flex: 1; text-align: left; }
+    .lb-row .pts   { color: #00e676; font-weight: bold; }
+
+    .lb-row.top1 { background: rgba(255,215,0,0.15); }
+    .lb-row.top2 { background: rgba(192,192,192,0.12); }
+    .lb-row.top3 { background: rgba(205,127,50,0.12); }
+    .lb-row.you { background: rgba(108,92,231,0.35); border: 1px solid #8e7dff; }
+
+    .zap-badge {
+      display: inline-block; margin-right: 4px;
+      filter: drop-shadow(0 0 6px #ffd54f);
+    }
+
+    .lb-divider { height: 1px; background: #6c5ce7; margin: 12px 0; opacity: 0.4; }
+    .lb-you-label { text-align: center; color: #aaaaaa; font-size: 14px; margin-bottom: 6px; }
+
+    #lbStatus {
+      text-align: center; font-size: 13px; color: #888;
+      margin-top: 10px; min-height: 18px;
+    }
+    #lbStatus.error { color: #ff6b6b; }
+
+    .bottom-buttons { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    #resetBtn, #changeNameBtn {
+      padding: 8px 16px; background: transparent; border-radius: 10px;
+      cursor: pointer; font-size: 14px; transition: background 0.2s, color 0.2s;
+    }
+    #resetBtn { color: #ff6b6b; border: 2px solid #ff6b6b; }
+    #resetBtn:hover { background: #ff6b6b; color: white; }
+    #changeNameBtn { color: #6c5ce7; border: 2px solid #6c5ce7; }
+    #changeNameBtn:hover { background: #6c5ce7; color: white; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: none; align-items: center; justify-content: center; z-index: 100;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: #2b2b45; border: 2px solid #6c5ce7; border-radius: 16px;
+      padding: 30px; width: 320px; text-align: center; box-shadow: 0 0 40px #6c5ce7;
+    }
+    .modal h3 { margin-top: 0; color: #8e7dff; }
+    .modal input {
+      width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #6c5ce7;
+      background: #1e1e2f; color: white; font-size: 16px;
+      margin: 10px 0 16px; box-sizing: border-box; outline: none;
+    }
+    .modal input:focus { border-color: #8e7dff; }
+    .modal button {
+      padding: 10px 24px; border: none; border-radius: 10px;
+      background: #6c5ce7; color: white; font-weight: bold; cursor: pointer; font-size: 16px;
+    }
+    .modal button:hover { background: #8e7dff; }
+
+    /* ===== ВСПЛЫВАЮЩЕЕ УВЕДОМЛЕНИЕ ===== */
+    #toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+      background: linear-gradient(135deg, #ffd54f, #ff9800);
+      color: #1e1e2f; padding: 16px 28px; border-radius: 14px;
+      font-weight: bold; font-size: 16px; z-index: 200;
+      box-shadow: 0 0 30px rgba(255, 213, 79, 0.6);
+      transition: transform 0.4s ease; pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+  <h1>Мой кликер</h1>
+
+  <p class="score-label">Кликов:</p>
+  <div id="score">0</div>
+
+  <button id="clickBtn">Клик!</button>
+
+  <div class="shop">
+    <div class="shop-item">
+      <h3>Усиленный клик</h3>
+      <p>+1 к каждому клику</p>
+      <p>Уровень: <span id="clickLevel">0</span></p>
+      <p>Цена: <span id="clickCost">10</span></p>
+      <button id="buyClick">Купить</button>
+    </div>
+    <div class="shop-item">
+      <h3>Автокликер</h3>
+      <p>+1 в секунду автоматически</p>
+      <p>Уровень: <span id="autoLevel">0</span></p>
+      <p>Цена: <span id="autoCost">25</span></p>
+      <button id="buyAuto">Купить</button>
+    </div>
+  </div>
+
+  <!-- БОСС -->
+  <div class="boss-block">
+    <h2 class="boss-title">⚡ ЗЕВС ⚡</h2>
+    <p class="boss-subtitle">Босс всех игроков. Бейте вместе!</p>
+    <div class="boss-hp-bar"><div class="boss-hp-fill" id="bossHpFill"></div></div>
+    <div class="boss-hp-text" id="bossHpText">100 000 000 / 100 000 000</div>
+    <button id="bossHitBtn">⚔️ Ударить ЗЕВСА</button>
+    <div class="boss-my-damage" id="bossMyDamage">Твой урон: 0</div>
+    <div class="boss-timer" id="bossTimer"></div>
+  </div>
+
+  <!-- КОЛЛЕКЦИЯ -->
+  <div class="collection-block">
+    <h2>🍎 Коллекция «Фрукты»</h2>
+    <div class="collection-progress" id="fruitProgress">Собрано: 0 / 10</div>
+    <div class="fruit-grid" id="fruitGrid"></div>
+    <div class="collection-badge" id="collectionBadge"></div>
+  </div>
+
+  <!-- ДОСТИЖЕНИЯ -->
+  <div class="achievements-block">
+    <h2>🏆 Достижения</h2>
+    <div id="achievementsList"></div>
+  </div>
+
+  <!-- РЕЙТИНГ -->
+  <div class="leaderboard">
+    <h2>🏆 Топ-10 игроков</h2>
+    <div id="topList"></div>
+    <div class="lb-divider"></div>
+    <div class="lb-you-label">Твоё место:</div>
+    <div id="yourPlace"></div>
+    <div id="lbStatus">Загрузка рейтинга...</div>
+  </div>
+
+  <div class="bottom-buttons">
+    <button id="changeNameBtn">Сменить ник</button>
+    <button id="resetBtn">Сбросить прогресс</button>
+  </div>
+
+  <div class="modal-backdrop" id="nameModal">
+    <div class="modal">
+      <h3>Как тебя зовут?</h3>
+      <input id="nameInput" type="text" maxlength="16" placeholder="Введи ник (до 16 символов)">
+      <button id="saveNameBtn">Сохранить</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import {
+      getDatabase, ref, set, get, update, onValue, query, orderByChild, limitToLast, runTransaction
+    } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+    // =========================================
+    // ⚠️ ТВОЙ FIREBASE CONFIG (уже заполнен тобой)
+    // =========================================
+    const firebaseConfig = {
+      apiKey: "-",
+      authDomain: "my-clicker-game-680a4.firebaseapp.com",
+      databaseURL: "https://my-clicker-game-680a4-default-rtdb.europe-west1.firebasedatabase.app/",
+      projectId: "my-clicker-game-680a4",
+      storageBucket: "my-clicker-game-680a4.firebasestorage.app",
+      messagingSenderId: "557346563297",
+      appId: "1:557346563297:web:97bf4ec987cb38270a83a0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+
+    // =========================================
+    // КОНСТАНТЫ ИГРЫ
+    // =========================================
+    const BOSS_MAX_HP = 100_000_000;
+    const BOSS_RESPAWN_MS = 10 * 60 * 1000; // 10 минут
+
+    const FRUITS = [
+      { id: 'apple',      name: 'Яблоко',     emoji: '🍎' },
+      { id: 'orange',     name: 'Апельсин',   emoji: '🍊' },
+      { id: 'cherry',     name: 'Вишня',      emoji: '🍒' },
+      { id: 'grapefruit', name: 'Грейпфрут',  emoji: '🍊' },
+      { id: 'apricot',    name: 'Абрикос',    emoji: '🍑' },
+      { id: 'sweetcherry',name: 'Черешня',    emoji: '🍒' },
+      { id: 'banana',     name: 'Банан',      emoji: '🍌' },
+      { id: 'strawberry', name: 'Клубника',   emoji: '🍓' },
+      { id: 'kiwi',       name: 'Киви',       emoji: '🥝' },
+      { id: 'pomelo',     name: 'Помело',     emoji: '🍈' }
+    ];
+
+    // =========================================
+    // СОСТОЯНИЕ
+    // =========================================
+    const saved = JSON.parse(localStorage.getItem('clickerSave')) || {};
+
+    let playerId   = saved.playerId   ?? ('p_' + Math.random().toString(36).slice(2, 10));
+    let playerName = saved.playerName ?? '';
+    let score      = saved.score      ?? 0;
+    let clickPower = saved.clickPower ?? 1;
+    let autoPower  = saved.autoPower  ?? 0;
+    let clickLevel = saved.clickLevel ?? 0;
+    let autoLevel  = saved.autoLevel  ?? 0;
+    let clickCost  = saved.clickCost  ?? 10;
+    let autoCost   = saved.autoCost   ?? 25;
+    let fruits     = saved.fruits     ?? []; // массив id собранных фруктов
+
+    // =========================================
+    // ЭЛЕМЕНТЫ
+    // =========================================
+    const scoreElement  = document.getElementById('score');
+    const clickButton   = document.getElementById('clickBtn');
+    const clickLevelEl  = document.getElementById('clickLevel');
+    const autoLevelEl   = document.getElementById('autoLevel');
+    const clickCostEl   = document.getElementById('clickCost');
+    const autoCostEl    = document.getElementById('autoCost');
+    const buyClickBtn   = document.getElementById('buyClick');
+    const buyAutoBtn    = document.getElementById('buyAuto');
+    const resetBtn      = document.getElementById('resetBtn');
+    const changeNameBtn = document.getElementById('changeNameBtn');
+    const topListEl     = document.getElementById('topList');
+    const yourPlaceEl   = document.getElementById('yourPlace');
+    const lbStatusEl    = document.getElementById('lbStatus');
+    const nameModal     = document.getElementById('nameModal');
+    const nameInput     = document.getElementById('nameInput');
+    const saveNameBtn   = document.getElementById('saveNameBtn');
+
+    const bossHpFill    = document.getElementById('bossHpFill');
+    const bossHpText    = document.getElementById('bossHpText');
+    const bossHitBtn    = document.getElementById('bossHitBtn');
+    const bossMyDamage  = document.getElementById('bossMyDamage');
+    const bossTimerEl   = document.getElementById('bossTimer');
+
+    const fruitGrid     = document.getElementById('fruitGrid');
+    const fruitProgress = document.getElementById('fruitProgress');
+    const collectionBadge = document.getElementById('collectionBadge');
+    const achievementsList = document.getElementById('achievementsList');
+    const toastEl       = document.getElementById('toast');
+
+    // =========================================
+    // ЛОКАЛЬНОЕ СОХРАНЕНИЕ
+    // =========================================
+    function save() {
+      localStorage.setItem('clickerSave', JSON.stringify({
+        playerId, playerName, score, clickPower, autoPower,
+        clickLevel, autoLevel, clickCost, autoCost, fruits
+      }));
+    }
+
+    // =========================================
+    // ПРОВЕРКА ДОСТИЖЕНИЙ
+    // =========================================
+    function hasZeusKiller() {
+      return fruits.length >= FRUITS.length;
+    }
+
+    // =========================================
+    // TOAST-УВЕДОМЛЕНИЕ
+    // =========================================
+    let toastTimeout;
+    function showToast(text) {
+      toastEl.textContent = text;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 4000);
+    }
+
+    // =========================================
+    // ОТПРАВКА В FIREBASE
+    // =========================================
+    let lastSent = 0;
+    function pushToFirebase() {
+      if (!playerName) return;
+      const now = Date.now();
+      if (now - lastSent < 1500) return;
+      lastSent = now;
+      set(ref(db, 'players/' + playerId), {
+        name: playerName,
+        score: Math.floor(score),
+        fruits: fruits,
+        zeusKiller: hasZeusKiller(),
+        updated: now
+      }).catch(err => {
+        console.error('Firebase write error:', err);
+        showLbStatus('Не удалось отправить результат: ' + err.message, true);
+      });
+    }
+
+    // =========================================
+    // РЕЙТИНГ
+    // =========================================
+    let allPlayers = [];
+
+    const topQuery = query(ref(db, 'players'), orderByChild('score'), limitToLast(10));
+    onValue(topQuery, snapshot => {
+      const data = snapshot.val() || {};
+      const arr = Object.entries(data).map(([id, p]) => ({ id, ...p }));
+      arr.sort((a, b) => b.score - a.score);
+      renderTop(arr);
+      showLbStatus('');
+    }, err => {
+      showLbStatus('Ошибка загрузки рейтинга: ' + err.message, true);
+    });
+
+    onValue(ref(db, 'players'), snapshot => {
+      const data = snapshot.val() || {};
+      allPlayers = Object.entries(data).map(([id, p]) => ({ id, ...p }));
+      renderYourPlace();
+    });
+
+    function renderTop(top10) {
+      if (!top10.length) {
+        topListEl.innerHTML = '<div style="text-align:center;color:#888;font-size:14px;">Пока никто не играл — стань первым!</div>';
+        return;
+      }
+      topListEl.innerHTML = top10.map((p, i) => {
+        const place = i + 1;
+        let cls = 'lb-row';
+        if (place === 1) cls += ' top1';
+        if (place === 2) cls += ' top2';
+        if (place === 3) cls += ' top3';
+        if (p.id === playerId) cls += ' you';
+        const medal = place === 1 ? '🥇' : place === 2 ? '🥈' : place === 3 ? '🥉' : place;
+        const zap = p.zeusKiller ? '<span class="zap-badge">⚡</span>' : '';
+        return `<div class="${cls}">
+          <span class="place">${medal}</span>
+          <span class="name">${zap}${escapeHtml(p.name || 'Без имени')}${p.id === playerId ? ' (ты)' : ''}</span>
+          <span class="pts">${p.score ?? 0}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function renderYourPlace() {
+      if (!playerName) {
+        yourPlaceEl.innerHTML = '<div class="lb-row"><span class="name" style="text-align:center;color:#888;">Введи ник, чтобы попасть в рейтинг</span></div>';
+        return;
+      }
+      if (!allPlayers.length) {
+        yourPlaceEl.innerHTML = '<div class="lb-row"><span class="name" style="text-align:center;color:#888;">Загрузка...</span></div>';
+        return;
+      }
+      const sorted = [...allPlayers].sort((a, b) => b.score - a.score);
+      const myIndex = sorted.findIndex(p => p.id === playerId);
+      const myPlace = myIndex === -1 ? '—' : myIndex + 1;
+      const total = sorted.length;
+      const inTop10 = typeof myPlace === 'number' && myPlace <= 10;
+      const zap = hasZeusKiller() ? '<span class="zap-badge">⚡</span>' : '';
+
+      yourPlaceEl.innerHTML = `<div class="lb-row you">
+        <span class="place">${myPlace}</span>
+        <span class="name">${zap}${escapeHtml(playerName)} (ты)</span>
+        <span class="pts">${Math.floor(score)}</span>
+      </div>
+      <div style="text-align:center;color:#888;font-size:13px;margin-top:6px;">
+        из ${total} игроков ${inTop10 ? ' · ты в топ-10! 🎉' : ''}
+      </div>`;
+    }
+
+    function showLbStatus(text, isError) {
+      lbStatusEl.textContent = text;
+      lbStatusEl.className = isError ? 'error' : '';
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // =========================================
+    // КОЛЛЕКЦИЯ И ДОСТИЖЕНИЯ
+    // =========================================
+    function renderCollection() {
+      fruitGrid.innerHTML = FRUITS.map(f => {
+        const owned = fruits.includes(f.id);
+        return `<div class="fruit ${owned ? 'owned' : ''}" title="${f.name}">
+          <div class="emoji">${f.emoji}</div>
+          <div>${owned ? f.name : '???'}</div>
+        </div>`;
+      }).join('');
+
+      fruitProgress.textContent = `Собрано: ${fruits.length} / ${FRUITS.length}`;
+
+      if (hasZeusKiller()) {
+        collectionBadge.innerHTML = '⚡ Коллекция закрыта! Достижение «Убийца ЗЕВСА» ⚡';
+      } else {
+        collectionBadge.innerHTML = '';
+      }
+
+      renderAchievements();
+    }
+
+    function renderAchievements() {
+      const unlocked = hasZeusKiller();
+      achievementsList.innerHTML = `
+        <div class="achievement ${unlocked ? 'unlocked' : ''}">
+          <div class="ach-icon">${unlocked ? '⚡' : '🔒'}</div>
+          <div>
+            <div class="ach-name">Убийца ЗЕВСА</div>
+            <div class="ach-desc">Собери все 10 фруктов коллекции</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Начислить фрукт (если ещё нет)
+    function grantFruit(fruitId) {
+      if (!fruitId || fruits.includes(fruitId)) return false;
+      fruits.push(fruitId);
+      save();
+      renderCollection();
+      pushToFirebase();
+      const f = FRUITS.find(x => x.id === fruitId);
+      showToast(`🍀 Получен фрукт: ${f.emoji} ${f.name}!`);
+      if (hasZeusKiller()) {
+        setTimeout(() => showToast('⚡ Достижение «Убийца ЗЕВСА» открыто! ⚡'), 1500);
+      }
+      return true;
+    }
+
+    // =========================================
+    // ОБНОВЛЕНИЕ UI
+    // =========================================
+    function updateUI() {
+      scoreElement.textContent = Math.floor(score);
+      clickLevelEl.textContent = clickLevel;
+      autoLevelEl.textContent  = autoLevel;
+      clickCostEl.textContent  = clickCost;
+      autoCostEl.textContent   = autoCost;
+
+      buyClickBtn.disabled = score < clickCost;
+      buyAutoBtn.disabled  = score < autoCost;
+
+      save();
+      pushToFirebase();
+      renderYourPlace();
+    }
+
+    // =========================================
+    // ИГРОВЫЕ ДЕЙСТВИЯ
+    // =========================================
+    clickButton.addEventListener('click', () => {
+      score += clickPower;
+      updateUI();
+    });
+
+    buyClickBtn.addEventListener('click', () => {
+      if (score >= clickCost) {
+        score -= clickCost;
+        clickLevel += 1;
+        clickPower += 1;
+        clickCost = Math.floor(clickCost * 1.5);
+        updateUI();
+      }
+    });
+
+    buyAutoBtn.addEventListener('click', () => {
+      if (score >= autoCost) {
+        score -= autoCost;
+        autoLevel += 1;
+        autoPower += 1;
+        autoCost = Math.floor(autoCost * 1.5);
+        updateUI();
+      }
+    });
+
+    setInterval(() => {
+      if (autoPower > 0) {
+        score += autoPower;
+        updateUI();
+      }
+    }, 1000);
+
+    setInterval(() => {
+      lastSent = 0;
+      pushToFirebase();
+    }, 10000);
+
+    // =========================================
+    // БОСС ЗЕВС
+    // =========================================
+    let bossState = { hp: BOSS_MAX_HP, maxHp: BOSS_MAX_HP, alive: true, respawnAt: 0 };
+    let myBossDamage = 0;
+    let lastBossHitSent = 0;
+
+    // Подписываемся на состояние босса
+    onValue(ref(db, 'boss'), snapshot => {
+      const data = snapshot.val();
+      if (!data) {
+        // Босс ещё не создан — создаём
+        initBoss();
+        return;
+      }
+      bossState = data;
+      renderBoss();
+    });
+
+    // Свой урон в текущем бою
+    onValue(ref(db, 'bossDamage/' + playerId), snapshot => {
+      const data = snapshot.val();
+      myBossDamage = data?.damage ?? 0;
+      renderBoss();
+    });
+
+    async function initBoss() {
+      const now = Date.now();
+      await set(ref(db, 'boss'), {
+        hp: BOSS_MAX_HP,
+        maxHp: BOSS_MAX_HP,
+        alive: true,
+        respawnAt: 0,
+        lastKilledAt: 0,
+        killedBy: null
+      });
+    }
+
+    function renderBoss() {
+      const { hp, maxHp, alive, respawnAt } = bossState;
+      const percent = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+      bossHpFill.style.width = percent + '%';
+      bossHpText.textContent = `${formatNum(Math.max(0, hp))} / ${formatNum(maxHp)}`;
+
+      bossMyDamage.textContent = `Твой урон: ${formatNum(myBossDamage)}`;
+
+      if (alive) {
+        bossHitBtn.disabled = false;
+        bossHitBtn.textContent = '⚔️ Ударить ЗЕВСА';
+        bossTimerEl.textContent = '';
+        bossHpFill.style.background = 'linear-gradient(90deg, #ff5252, #ff1744)';
+      } else {
+        bossHitBtn.disabled = true;
+        const left = Math.max(0, respawnAt - Date.now());
+        const min = Math.floor(left / 60000);
+        const sec = Math.floor((left % 60000) / 1000);
+        bossHitBtn.textContent = '💀 ЗЕВС повержен';
+        bossTimerEl.textContent = `Возрождение через ${min}:${String(sec).padStart(2, '0')}`;
+        bossHpFill.style.width = '0%';
+        bossHpFill.style.background = '#555';
+      }
+    }
+
+    // Тикаем таймер каждый 500 мс
+    setInterval(() => {
+      if (!bossState.alive) {
+        renderBoss();
+        // Проверяем, не пора ли возродить (на всякий случай, если другой клиент не успел)
+        if (Date.now() >= bossState.respawnAt) {
+          tryRespawnBoss();
+        }
+      }
+    }, 500);
+
+    async function tryRespawnBoss() {
+      try {
+        const bossRef = ref(db, 'boss');
+        await runTransaction(bossRef, (current) => {
+          if (!current) return { hp: BOSS_MAX_HP, maxHp: BOSS_MAX_HP, alive: true, respawnAt: 0, lastKilledAt: 0, killedBy: null };
+          if (current.alive) return current; // уже жив
+          if (Date.now() < current.respawnAt) return current; // рано
+          // Возрождаем
+          return {
+            hp: BOSS_MAX_HP,
+            maxHp: BOSS_MAX_HP,
+            alive: true,
+            respawnAt: 0,
+            lastKilledAt: current.lastKilledAt || 0,
+            killedBy: null
+          };
+        });
+        // Очищаем урон старых игроков
+        await set(ref(db, 'bossDamage'), null);
+        // Сбрасываем свой урон локально
+        myBossDamage = 0;
+        renderBoss();
+      } catch (e) {
+        console.error('Respawn error:', e);
+      }
+    }
+
+    bossHitBtn.addEventListener('click', async () => {
+      if (!bossState.alive) return;
+      const damage = clickPower;
+      // Локальный урон
+      myBossDamage += damage;
+
+      // Отправляем урон на сервер через транзакцию (атомарно)
+      try {
+        // 1. Урон игрока (для топ-10)
+        await runTransaction(ref(db, 'bossDamage/' + playerId + '/damage'), (cur) => {
+          return (cur || 0) + damage;
+        });
+        await set(ref(db, 'bossDamage/' + playerId + '/name'), playerName || 'Аноним');
+
+        // 2. HP босса (атомарно уменьшаем)
+        const bossRef = ref(db, 'boss');
+        let killed = false;
+        let finalState = null;
+
+        await runTransaction(bossRef, (current) => {
+          if (!current) return current;
+          if (!current.alive) return current; // уже мёртв — не бьём
+          const newHp = current.hp - damage;
+          if (newHp <= 0) {
+            killed = true;
+            return {
+              ...current,
+              hp: 0,
+              alive: false,
+              respawnAt: Date.now() + BOSS_RESPAWN_MS,
+              lastKilledAt: Date.now(),
+              killedBy: playerName || 'Аноним'
+            };
+          }
+          return { ...current, hp: newHp };
+        }, (err, committed, snapshot) => {
+          if (committed) finalState = snapshot.val();
+        });
+
+        // Если этот клиент добил — запускаем раздачу наград
+        if (killed) {
+          // Небольшая задержка чтобы все клиенты получили финальное состояние
+          setTimeout(() => distributeRewards(), 500);
+        }
+
+        renderBoss();
+      } catch (e) {
+        console.error('Boss hit error:', e);
+      }
+    });
+
+    // =========================================
+    // РАЗДАЧА НАГРАД ТОП-10 ПО УРОНУ
+    // =========================================
+    async function distributeRewards() {
+      try {
+        // Читаем топ-10 по урону
+        const dmgRef = query(ref(db, 'bossDamage'), orderByChild('damage'), limitToLast(10));
+        const snap = await get(dmgRef);
+        const data = snap.val() || {};
+        const arr = Object.entries(data).map(([id, p]) => ({ id, ...p }));
+        arr.sort((a, b) => (b.damage || 0) - (a.damage || 0));
+
+        if (!arr.length) return;
+
+        // Каждому из топ-10 — случайный фрукт
+        for (const winner of arr) {
+          const randomFruit = FRUITS[Math.floor(Math.random() * FRUITS.length)];
+
+          // Читаем игрока
+          const playerSnap = await get(ref(db, 'players/' + winner.id));
+          const playerData = playerSnap.val();
+          if (!playerData) continue;
+
+          let playerFruits = playerData.fruits || [];
+          if (playerFruits.includes(randomFruit.id)) {
+            // Уже есть такой — попробуем другой раз, но для простоты просто не даём дубль
+            // Можно перебрать остальные, но упрощаем
+            const missing = FRUITS.filter(f => !playerFruits.includes(f.id));
+            if (missing.length === 0) continue; // уже всё собрал
+            const alt = missing[Math.floor(Math.random() * missing.length)];
+            playerFruits = [...playerFruits, alt.id];
+          } else {
+            playerFruits = [...playerFruits, randomFruit.id];
+          }
+
+          const hasAll = playerFruits.length >= FRUITS.length;
+
+          await update(ref(db, 'players/' + winner.id), {
+            fruits: playerFruits,
+            zeusKiller: hasAll
+          });
+
+          // Если это я — обновим локально + покажем тост
+          if (winner.id === playerId) {
+            fruits = playerFruits;
+            save();
+            renderCollection();
+            const gained = playerFruits[playerFruits.length - 1];
+            const f = FRUITS.find(x => x.id === gained);
+            showToast(`🏆 Ты в топ-10 по урону! Получен: ${f.emoji} ${f.name}`);
+            if (hasZeusKiller()) {
+              setTimeout(() => showToast('⚡ Достижение «Убийца ЗЕВСА» открыто! ⚡'), 1500);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Distribute rewards error:', e);
+      }
+    }
+
+    // =========================================
+    // УТИЛИТЫ
+    // =========================================
+    function formatNum(n) {
+      n = Math.floor(n);
+      if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'B';
+      if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'M';
+      if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+      return String(n);
+    }
+
+    // =========================================
+    // НИК
+    // =========================================
+    function openNameModal() {
+      nameInput.value = playerName;
+      nameModal.classList.add('open');
+      nameInput.focus();
+    }
+    function closeNameModal() {
+      nameModal.classList.remove('open');
+    }
+
+    saveNameBtn.addEventListener('click', () => {
+      const name = nameInput.value.trim();
+      if (name.length < 2) { alert('Ник должен быть не короче 2 символов'); return; }
+      playerName = name;
+      closeNameModal();
+      lastSent = 0;
+      updateUI();
+    });
+    nameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') saveNameBtn.click();
+    });
+    changeNameBtn.addEventListener('click', openNameModal);
+
+    // =========================================
+    // СБРОС
+    // =========================================
+    resetBtn.addEventListener('click', () => {
+      if (confirm('Точно сбросить весь прогресс?')) {
+        localStorage.removeItem('clickerSave');
+        location.reload();
+      }
+    });
+
+    // =========================================
+    // СТАРТ
+    // =========================================
+    renderCollection();
+    updateUI();
+    renderBoss();
+    if (!playerName) openNameModal();
+  </script>
+</body>
+</html>
